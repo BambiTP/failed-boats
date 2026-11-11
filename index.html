@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Failed Boats</title>
+<style>
+  body { font-family: sans-serif; margin: 0 auto; padding: 16px; max-width: 760px; line-height: 1.4; }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  #how-found { color: #444; margin-bottom: 12px; }
+  #filter-bar { margin-bottom: 12px; }
+  #filter-bar select { font-size: 15px; padding: 6px; }
+  .player-box { border: 1px solid #ccc; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; }
+  .player-box summary { cursor: pointer; font-weight: bold; }
+  .player-count { float: right; }
+  .boat-row { border-top: 1px solid #eee; padding: 8px 0; overflow: hidden; }
+  .boat-details { color: #555; font-size: 14px; }
+  .boat-links { float: right; }
+  .boat-links a { display: inline-block; margin-left: 8px; text-decoration: none; }
+  .watch-link { background: #2e7d32; color: #fff; border-radius: 6px; padding: 8px 14px; }
+  .tagpro-link { border: 1px solid #2e7d32; color: #2e7d32; border-radius: 6px; padding: 7px 12px; }
+</style>
+</head>
+<body>
+<h1>Failed Boats</h1>
+<div id="how-found">
+  <details><summary>How these were found</summary>
+    <p>Every CTF replay in the ranked archive (about 15,800 games, March 2025 on) and every NALTP competitive replay
+    (about 1,400 games, season 31 on) was scanned. A failed boat is a flag carrier who is popped within 3 tiles of their own
+    flag while that flag is at home (so the cap was there), after slowing to under half of their top speed for at least
+    0.75 seconds, with no enemy within 4 tiles during the slow part. Slowing with an enemy close is left out, since that
+    carrier may just have been scared. This is found by code and has not been checked by hand, so some may be a carrier
+    who got stuck or was hit by something else (a bomb or spike).</p>
+    <p>Watch opens the replay in this page's viewer, a couple of seconds before the part shown (the last 10 seconds of the carry at most),
+    following the carrier. On TagPro opens the same moment on the real TagPro site, if you are logged in.</p></details>
+</div>
+<div id="filter-bar">
+  <select id="kind-filter">
+    <option value="">Ranked and competitive</option>
+    <option value="ranked">Ranked only</option>
+    <option value="comp">Competitive only</option>
+  </select>
+  <span id="total-count"></span>
+</div>
+<div id="players-list">Loading...</div>
+<script>
+  const clock = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const kindName = { ranked: 'Ranked', comp: 'Competitive' };
+  let boats = [];
+
+  function makeRow(b) {
+    const row = document.createElement('div');
+    row.className = 'boat-row';
+    const links = document.createElement('div');
+    links.className = 'boat-links';
+    const title = `${b.player}: slows down at the cap, ${b.map} (${kindName[b.kind]})`;
+    const watch = document.createElement('a');
+    watch.className = 'watch-link';
+    watch.textContent = 'Watch';
+    watch.href = `viewer/?replay=${b.key}&t=${b.t_ms}&follow=${b.player_id}&title=${encodeURIComponent(title)}` +
+      (b.tagpro_url ? `&tagpro=${encodeURIComponent(b.tagpro_url)}` : '');
+    links.appendChild(watch);
+    if (b.tagpro_url) {
+      const tp = document.createElement('a');
+      tp.className = 'tagpro-link';
+      tp.textContent = 'On TagPro';
+      tp.href = b.tagpro_url;
+      tp.target = '_blank';
+      tp.rel = 'noopener';
+      links.appendChild(tp);
+    }
+    const line1 = document.createElement('div');
+    line1.textContent = `${b.map} · ${kindName[b.kind]}` + (b.comp ? ` · ${b.comp}` : '');
+    const line2 = document.createElement('div');
+    line2.className = 'boat-details';
+    line2.textContent = `popped ${clock(b.pop_clock)} into the game, ${b.dist_tiles} tiles from their flag` +
+      (b.played ? ` · ${new Date(b.played).toISOString().slice(0, 10)}` : '');
+    row.append(links, line1, line2);
+    return row;
+  }
+
+  function show() {
+    const kind = document.getElementById('kind-filter').value;
+    const shown = boats.filter(b => !kind || b.kind === kind);
+    const byPlayer = {};
+    for (const b of shown) (byPlayer[b.player] = byPlayer[b.player] || []).push(b);
+    const players = Object.entries(byPlayer).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+    document.getElementById('total-count').textContent = `${shown.length} failed boats, ${players.length} players`;
+    const list = document.getElementById('players-list');
+    list.textContent = '';
+    for (const [name, items] of players) {
+      const box = document.createElement('details');
+      box.className = 'player-box';
+      const sum = document.createElement('summary');
+      const count = document.createElement('span');
+      count.className = 'player-count';
+      count.textContent = items.length;
+      sum.append(count, name);
+      box.appendChild(sum);
+      for (const b of items.sort((x, y) => (y.played || 0) - (x.played || 0))) box.appendChild(makeRow(b));
+      list.appendChild(box);
+    }
+    if (!players.length) list.textContent = 'None.';
+  }
+
+  document.getElementById('kind-filter').addEventListener('change', show);
+  fetch('boats.json', { cache: 'no-store' }).then(r => r.json()).then(data => { boats = data; show(); });
+</script>
+</body>
+</html>
