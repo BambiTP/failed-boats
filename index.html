@@ -26,10 +26,11 @@
 <div id="how-found">
   <details><summary>How these were found</summary>
     <p>Every CTF replay in the ranked archive (about 15,800 games, March 2025 on) and every NALTP competitive replay
-    (about 1,400 games, season 31 on) was scanned. A failed boat is a flag carrier who is popped within 2 tiles of their own
-    flag while that flag is at home (so the cap was there), after being stopped (under about a sixth of a normal
-    running speed) for at least three quarters of a second, with no enemy within 3 tiles when they stopped. Found by code, then I looked
-    through the candidates' speed, distance and key presses; only one competitive game has one under these rules.</p>
+    (about 1,400 games, season 31 on) was scanned. A failed boat is a flag carrier who stops between 1 and 2 tiles from their own
+    flag (not on it) and is then popped. The stop is under about a sixth of a normal running speed for at least three quarters of
+    a second, with no enemy within 3 tiles when they stopped. Their own flag has to be at home for the whole stop and the second
+    before it: a carrier waiting on the flag tile for their flag to come back, who is caught the moment it does, is a mistime and
+    not a boat. Found by code and checked against each one's speed, distance and enemy distance; the rule finds none in competitive games.</p>
     <p>Watch opens the replay in this page's viewer, a couple of seconds before the part shown (the last 10 seconds of the carry at most),
     following the carrier. On TagPro opens the same moment on the real TagPro site, if you are logged in.</p></details>
 </div>
