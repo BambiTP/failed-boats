@@ -6,7 +6,7 @@ Thresholds (edit here):
               have just been scared or pressured, not showboating)"""
 import json, glob, collections, sys
 STOP_SPEED, SAFE_ENEMY, TICK, MAX_TILES, MIN_TILES = 0.8, 3.0, 0.25, 2.0, 1.0
-MIN_STOP_S = 0.75   # stop must last at least this long
+MIN_STOP_S = 0.5   # stop must last at least this long
 if len(sys.argv) > 3: STOP_SPEED, MIN_STOP_S, SAFE_ENEMY = map(float, sys.argv[1:4])   # try other settings: analyze.py STOP MINS SAFE [outfile]
 OUTFILE = sys.argv[4] if len(sys.argv) > 4 else 'showboats.json'   # speed is in tiles/s (a normal run is about 5)
 def classify(e):
