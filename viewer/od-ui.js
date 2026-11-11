@@ -19,6 +19,20 @@
     ['od-tagpro-link', 'od-loading-tagpro-link'].forEach(function (id) { $id(id).href = tagproUrl; $id(id).hidden = false; });
   }
 
+  // The control bar sits under the game, not over it (it used to cover the score): the client sizes and centres its canvas
+  // from the window's height, so that height is reported minus the bar's height, and the client is told to resize
+  // whenever the bar appears, disappears or changes size.
+  function barSpace() { return bar.hidden ? 0 : bar.offsetHeight; }
+  ['height', 'outerHeight'].forEach(function (name) {
+    var original = window.jQuery.fn[name];
+    window.jQuery.fn[name] = function () {
+      var value = original.apply(this, arguments);
+      return (this[0] === window && !arguments.length) ? value - barSpace() : value;
+    };
+  });
+  function resizeGame() { window.jQuery(window).trigger('resize'); }
+  if (window.ResizeObserver) new ResizeObserver(resizeGame).observe(bar);
+
   // camera: 'map' = whole map, 'follow' = follow the carrier at normal zoom
   var camera = 'map', zoomBy = 1, wantedSound = null, ready = false;
 
@@ -26,8 +40,8 @@
   function wholeMapZoom() {
     var m = tagpro.map, r = tagpro.renderer;
     if (!m || !r || !r.vpWidth || !r.vpHeight) return 1;
-    var barHeight = bar.hidden ? 0 : bar.offsetHeight; // the map is centred, so leave the bar's height at both ends
-    var w = r.vpWidth, h = Math.max(100, r.vpHeight - 2 * barHeight), f = r.resizeScaleFactor || 1;
+    // the game's canvas already stops above the bar (see below), so the whole canvas is free for the map
+    var w = r.vpWidth, h = Math.max(100, r.vpHeight), f = r.resizeScaleFactor || 1;
     return Math.max(40 * m.length * f / w, 40 * m[0].length * f / h) * 1.02;
   }
   // put the camera where it should be; run often, because the client changes these on its own events
@@ -97,6 +111,7 @@
     tagpro.sound = wantedSound;
     cover.style.display = 'none';
     bar.hidden = false;
+    resizeGame();
     toggle.hidden = false;
     applyCamera();
     if (tagpro.replayPaused) tagpro.replayActions.playpause();
@@ -118,7 +133,7 @@
   viewButton.addEventListener('click', function () { camera = camera === 'map' ? 'follow' : 'map'; zoomBy = 1; applyCamera(); });
   $id('od-zoomin-button').addEventListener('click', function () { zoomBy = Math.max(0.3, zoomBy / 1.25); applyCamera(); });
   $id('od-zoomout-button').addEventListener('click', function () { zoomBy = Math.min(4, zoomBy * 1.25); applyCamera(); });
-  toggle.addEventListener('click', function () { bar.hidden = !bar.hidden; });
+  toggle.addEventListener('click', function () { bar.hidden = !bar.hidden; resizeGame(); });
 
   // keep the camera, play / pause button and speed list right (the client and keyboard keys change them too)
   setInterval(function () {
