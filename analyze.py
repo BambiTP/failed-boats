@@ -5,10 +5,10 @@ Thresholds (edit here):
   SAFE_ENEMY  nearest enemy must stay at least this many tiles away during the slow stretch (else the carrier may
               have just been scared or pressured, not showboating)"""
 import json, glob, collections, sys
-SLOW_FRAC, MIN_SLOW_S, SAFE_ENEMY, TICK = 0.5, 0.75, 4.0, 0.25
+SLOW_FRAC, MIN_SLOW_S, SAFE_ENEMY, TICK, MAX_TILES = 0.5, 0.75, 4.0, 0.25, 2.0   # MAX_TILES: pop must be this close to own flag
 def classify(e):
     spd, en = e['spd'], e['enemy']
-    if len(spd) < 6 or e['own_flag_out']: return 'not_applicable'
+    if len(spd) < 6 or e['own_flag_out'] or e['d_end'] > MAX_TILES: return 'not_applicable'
     peak = max(spd[:-1]) or 1
     k = 0
     for v in reversed(spd[:-1]):   # last sample is the death tick

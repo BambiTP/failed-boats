@@ -1,6 +1,6 @@
 """Scan ranked replays for 'failed boats': a flag carrier close to their own (home) flag who slows down and is then popped.
 Usage: scan.py WORKER NWORKERS  -> writes failed_boats/out_WORKER.jsonl (one line per CTF game, with every carrier episode that
-ended in a pop within 3 tiles of the carrier's own flag while it was home)."""
+ended in a pop within 2 tiles of the carrier's own flag while it was home)."""
 import sys, json, glob, os, gzip
 sys.path.insert(0, '/home/metjr/tagpro-analytics')
 import numpy as np
@@ -47,7 +47,7 @@ for k, f in enumerate(files):
                 x = S['x'][i]; y = S['y'][i]
                 if np.isnan(x[last]): continue
                 d = float(np.hypot(x[last]-h[0], y[last]-h[1]))
-                if d > 3: continue
+                if d > 3: continue  # scan keeps 3; analyze.py narrows to 2
                 # own flag at home at that moment? (no enemy carrying our flag)
                 out_flag = False
                 for j in range(P):
