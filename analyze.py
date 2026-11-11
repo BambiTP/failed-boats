@@ -5,7 +5,10 @@ Thresholds (edit here):
   SAFE_ENEMY  nearest enemy must stay at least this many tiles away during the slow stretch (else the carrier may
               have just been scared or pressured, not showboating)"""
 import json, glob, collections, sys
-STOP_SPEED, SAFE_ENEMY, TICK, MAX_TILES, MIN_TILES = 0.8, 3.0, 0.25, 2.0, 1.0   # speed is in tiles/s (a normal run is about 5)
+STOP_SPEED, SAFE_ENEMY, TICK, MAX_TILES, MIN_TILES = 0.8, 3.0, 0.25, 2.0, 1.0
+MIN_STOP_S = 0.75   # stop must last at least this long
+if len(sys.argv) > 3: STOP_SPEED, MIN_STOP_S, SAFE_ENEMY = map(float, sys.argv[1:4])   # try other settings: analyze.py STOP MINS SAFE [outfile]
+OUTFILE = sys.argv[4] if len(sys.argv) > 4 else 'showboats.json'   # speed is in tiles/s (a normal run is about 5)
 def classify(e):
     """Strict: popped within MAX_TILES of own home flag, completely stopped (speed under STOP_SPEED) for more than
     half a second right up to the pop, with no enemy within SAFE_ENEMY tiles when the stop began."""
@@ -15,7 +18,7 @@ def classify(e):
     for v in reversed(spd[:-1]):   # last sample is the death tick
         if v < STOP_SPEED: k += 1
         else: break
-    if k * TICK < 0.75: return 'no_full_stop'
+    if k * TICK < MIN_STOP_S - 1e-9: return 'no_full_stop'
     if not (MIN_TILES < e['dist'][-1-k] < MAX_TILES): return 'not_applicable'   # stopped 1 to 2 tiles out, not on the flag tile
     return 'showboat' if en[-1-k] >= SAFE_ENEMY else 'stopped_but_enemy_close'
 res = collections.defaultdict(collections.Counter); games = collections.Counter(); rows = []
@@ -49,4 +52,4 @@ for r in rows:
 print('after own-flag-home-throughout check:', len(rows), '->', len(kept))
 for kd in ('ranked', 'comp'): print(kd, sum(1 for r in kept if r['kind'] == kd))
 rows = kept
-json.dump(rows, open('showboats.json', 'w'), indent=1)
+json.dump(rows, open(OUTFILE, 'w'), indent=1)

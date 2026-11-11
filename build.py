@@ -33,7 +33,8 @@ for r in rows:
             for l in open(os.path.join(os.path.dirname(r['file']), 'info.txt')):
                 k, _, v = l.partition(': '); info[k] = v.strip()
         except OSError: pass
-        b['comp'] = f"{info.get('Season', '')} {info.get('League', '')} {info.get('Week', '')} {info.get('Game', '')}: {info.get('Matchup', '')}".strip()
+        season = info.get('Season', '').lstrip('S'); week = info.get('Week', '').replace('Week ', '')
+        b['comp'] = f"Season {season} · Week {week} · {info.get('League', '')} · {info.get('Game', '')}: {info.get('Matchup', '')}"
     boats.append(b)
 json.dump(boats, open(OUT + '/boats.json', 'w'), separators=(',', ':'))
 print(len(boats), 'boats,', len(os.listdir(OUT + '/replays')), 'replay files,', sum('tagpro_url' in b for b in boats), 'with TagPro links')
