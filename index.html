@@ -27,10 +27,9 @@
   <details><summary>How these were found</summary>
     <p>Every CTF replay in the ranked archive (about 15,800 games, March 2025 on) and every NALTP competitive replay
     (about 1,400 games, season 31 on) was scanned. A failed boat is a flag carrier who is popped within 2 tiles of their own
-    flag while that flag is at home (so the cap was there), after slowing to under half of their top speed for at least
-    0.75 seconds, with no enemy within 4 tiles during the slow part. Slowing with an enemy close is left out, since that
-    carrier may just have been scared. This is found by code and has not been checked by hand, so some may be a carrier
-    who got stuck or was hit by something else (a bomb or spike).</p>
+    flag while that flag is at home (so the cap was there), after being completely stopped (under about a tenth of a normal
+    running speed) for more than half a second, with no enemy within 4 tiles when they stopped. Found by code, then I looked
+    through the candidates' speed, distance and key presses; no competitive game has one under these rules.</p>
     <p>Watch opens the replay in this page's viewer, a couple of seconds before the part shown (the last 10 seconds of the carry at most),
     following the carrier. On TagPro opens the same moment on the real TagPro site, if you are logged in.</p></details>
 </div>
